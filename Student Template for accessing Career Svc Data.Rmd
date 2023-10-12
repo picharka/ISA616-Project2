@@ -1,6 +1,6 @@
 ---
 title: "Cleaning the Combined BI And Survey Career Data"
-author: "Your Name Here"
+author: "Ri'ann Yates-Miller"
 output:
   html_document:
     date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -39,9 +39,173 @@ Write something here
 data=readRDS(file = "FSB_BI_Survey_2019_2021.rds")
 ```
 
+# Introductory EDA
+
+Describing each data preprocessing step with small chunks of code, output where necessary, and documentation
+```{r}
+introduce(data)
+```
+```{r}
+plot_intro(data)
+```
+```{r}
+plot_missing(data)
+
+##Basically I think we should keep: 
+# year
+# GPA.Range
+# maybe major 1
+# survey plans
+# survey internships
+# survey intern one
+# maybe survey offers
+# survey salary
+# maybe survey dept func
+
+# if we are talking salary should we keep a location variable to control for this ?
+# Does grades/GPA affect the kind of job offers ? should we control for this ? 
+```
+
+Fixing text issues in survey_state 
+
+```{r}
+class(data$survey_state)
+
+#the survey_state variables is of type character, need to convert to factor to check levels and model
+data$survey_state = as.factor(data$survey_state)
+#check the levels 
+levels(data$survey_state)
+# checking the levels in survey_state
+#distinct_levels <- levels(data$survey_state)
+#print(distinct_levels)
+```
+
+```{r}
+#cleaning the observations 
+# Convert state names to uppercase for consistency
+data$survey_state <- tolower(data$survey_state)
+
+#remove abbreviations
+data$survey_state <- gsub("[^a-zA-Z]", "", data$survey_state)
+
+#convert to numerical representations
+data$survey_state <- match(data$survey_state, tolower(state.abb))
+
+data$survey_state <- state.name[(data$survey_state)]
+print(unique(data$survey_state))
+```
+
+```{r}
+
+```
+
+
+```{r}
+install.packages("stringdist")
+library(stringdist)
+# Define the correct spelling
+correct_spelling <- "OH"
+
+# Calculate string distances
+distances <- stringdistmatrix(data$survey_state, correct_spelling)
+
+# Find the index of the closest match
+closest_match_index <- which.min(distances)
+
+# Replace the closest match with the correct spelling
+data$survey_state[closest_match_index] <- correct_spelling
+
+# Check the cleaned data
+levels(data$survey_state)
+
+```
+
+
+```{r}
+
+```
+
+```{r}
+plot_bar(data)
+```
+```{r}
+data = data |> 
+  dplyr::select(year.x, GPA.Range, major1, survey_plans, survey_internships, survey_internone, survey_offers, survey_salary, survey_deptfunc)
+
+data$survey_internships = as.numeric(data$survey_internships )
+data$survey_offers = as.numeric(data$survey_offers)
+data$year.x = as.factor(data$year.x)
+data$GPA.Range = as.factor(data$GPA.Range)
+data$survey_plans = as.factor(data$survey_plans)
+data$survey_deptfunc = as.factor(data$survey_deptfunc)
+```
+
+
+```{r}
+#dummy endcoding all the variables
+```
+
+```{r}
+introduce(data)
+```
+```{r}
+plot_intro(data)
+```
+```{r}
+plot_missing(data)
+```
+
+```{r}
+plot_histogram(data)
+```
+```{r}
+## what do with all the NAs. We cant really do anything with them if we dont have that data --> salary is actually a problem
+## possible missing value indicator and imputation??? idk???
+```
+
+
+```{r}
+gpa_major_sm = 
+  data |> 
+  dplyr::group_by(GPA.Range, major1) |>
+  dplyr::summarise( 
+    internships = mean(survey_internships), 
+    offers = mean(survey_offers), 
+    salary = mean(survey_salary)
+  )
+```
+
+```{r}
+year_sm = 
+  data |> 
+  dplyr::group_by(year.x) |>
+  dplyr::summarise( 
+    internships = mean(survey_internships), 
+    offers = mean(survey_offers), 
+    salary = mean(survey_salary)
+  )
+```
+
+```{r}
+gpa_major_sm
+
+```
+```{r}
+year_sm
+
+```
+
+
+```{r}
+## Should we make all the factors dummy for the regression?
+
+#making the dummy's
+```
+
 # Data Preprocessing
 
 Describing each data preprocessing step with small chunks of code, output where necessary, and documentation
+
 
 # The rest of your document
 
